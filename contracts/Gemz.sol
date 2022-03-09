@@ -5,84 +5,63 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Gemz is Ownable {
+	uint256 public songsCount;
 
-  uint public fileCount;
-  
+	constructor() Ownable() {
+		songsCount = 0;
+	}
 
-  constructor() Ownable() {
-    fileCount = 0;
-  }
+	// enum Liked {Yes, No}
 
-  enum Liked {Yes, No}
-  
-  struct File {
-    uint fileID;
-    string fileHash;
-    string coverHash;
-    string fileName;
-    string artistName;
-    address payable artistAddr;
-    string genre;
-    address[] donors;
-    mapping(address => Liked) liked;
-    uint likesCount;
-  }
+	struct Song {
+		uint256 id;
+		string songHash;
+		string coverHash;
+		string songTitle;
+		string artistName;
+		address payable artistAddress;
+		address[] donors;
+	}
 
-  event Uploaded (address _artist, string _fileHash, uint _fileID);
-  event Donate (address _artistAddr, uint _amount, address _donorAddr);
+	event Uploaded(address _artist, string _songHash, uint256 _songId);
+	event Donate(address _artistAddress, uint256 _amount, address _donorAddr);
 
-  File[] public files;
-  // mapping(address => uint) public balances;
+	mapping(uint256 => Song) songs;
 
-  function uploadFile(
-    string memory _fileHash,
-    string memory _coverHash, 
-    string memory _fileName, 
-    string memory _artistName, 
-    string memory _genre) public {
+	function uploadFile(
+		string memory _songHash,
+		string memory _coverHash,
+		string memory _songTitle,
+		string memory _artistName
+	) public {
+		require(bytes(_songHash).length > 0, "Song hash is not valid");
 
-    require(bytes(_fileHash).length > 0, "File hash is not valid");
+		songs[songsCount + 1] = Song({
+			id: songsCount + 1,
+			songHash: _songHash,
+			coverHash: _coverHash,
+			songTitle: _songTitle,
+			artistName: _artistName,
+			artistAddress: payable(msg.sender),
+			donors: new address[](0)
+		});
 
-    File storage file = files.push();
+		songsCount++;
 
-    file.fileID = fileCount+1;
-    file.fileHash = _fileHash;
-    file.coverHash = _coverHash;
-    file.fileName = _fileName;
-    file.artistName = _artistName;
-    file.artistAddr = payable(msg.sender);
-    file.genre = _genre;
-    file.donors.push(msg.sender);
-    file.liked[msg.sender] = Liked.Yes;
+		emit Uploaded(msg.sender, _songHash, songsCount + 1);
+	}
 
-    fileCount++;
+	function donate(uint256 id) public payable {
+		require(msg.value > 0);
+		address payable artist = songs[id].artistAddress;
+		require(msg.sender != artist, "You cannot donate to yourself");
 
-    emit Uploaded(msg.sender, _fileHash, file.fileID);
-  }
+		(bool sent, ) = artist.call{value: msg.value}("");
+		require(sent, "failed to send Ether");
 
-  function donate(uint id) public payable {
-    require(msg.value > 0);
-    address payable artist = files[id].artistAddr;
-    require(msg.sender != artist, "You cannot donate to yourself");
+		// balances[artist] += msg.value;
+		songs[id].donors.push(msg.sender);
 
-    (bool sent, ) = artist.call{value: msg.value}("");
-    require(sent, "failed to send Ether");
-
-    // balances[artist] += msg.value;
-    files[id].likesCount++;
-    files[id].liked[msg.sender] = Liked.Yes;
-    files[id].donors.push(msg.sender);
-
-    emit Donate(artist, msg.value, msg.sender);
-  }
-
-  // function withdraw() public payable {
-  //   uint balance = balances[msg.sender];
-  //   require(balance > 0);
-  //   balances[msg.sender] = 0;
-
-  //   (bool sent, ) = msg.sender.call{value: balance}("");
-  //   require(sent, "failed to send Ether");
-  // }
-
+		emit Donate(artist, msg.value, msg.sender);
+	}
 }

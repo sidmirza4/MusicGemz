@@ -2,15 +2,15 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config();
 
-const { PRIVATE_KEY, POLYGON_URL, RINKEBY_URL, ETHERSCAN_KEY} = process.env;
+const { PRIVATE_KEY, POLYGON_URL, RINKEBY_URL, ETHERSCAN_KEY } = process.env;
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
+	const accounts = await hre.ethers.getSigners();
 
-  for (const account of accounts) {
-    console.log(account.address);
-  }
+	for (const account of accounts) {
+		console.log(account.address);
+	}
 });
 
 // You need to export an object to set up your config
@@ -20,18 +20,14 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
-  networks: {
-    rinkeby: {
-      url: RINKEBY_URL,
-      accounts: [PRIVATE_KEY]
-    },
-    mumbai: {
-      url: POLYGON_URL,
-      accounts: [PRIVATE_KEY],
-    },
-  },
-  etherscan: {
-    apiKey: ETHERSCAN_KEY
-  }
+	solidity: "0.8.4",
+	networks: {
+		mumbai: {
+			url: POLYGON_URL,
+			accounts: [PRIVATE_KEY],
+		},
+	},
+	etherscan: {
+		apiKey: ETHERSCAN_KEY,
+	},
 };
