@@ -20,6 +20,7 @@ interface IAppContext {
 	isMetamaskInstalled: boolean;
 	connectWallet: () => void;
 	selectedAccount: string;
+	networkError: string;
 	gemz?: Contract;
 	allSongs: Array<any>;
 	sendTip: () => void;
@@ -29,6 +30,7 @@ const AppContext = createContext<IAppContext>({
 	isMetamaskInstalled: false,
 	connectWallet: () => {},
 	selectedAccount: "",
+	networkError: "",
 	allSongs: [],
 	sendTip: () => {},
 });
@@ -36,6 +38,7 @@ const AppContext = createContext<IAppContext>({
 const AppContextProvider: React.FC = ({ children }) => {
 	const [isMetamaskInstalled, setIsMetamaskInstalled] = useState(false);
 	const [selectedAccount, setSelectedAccount] = useState("");
+	const [networkError, setNetworkError] = useState("");
 	const [gemz, setGemz] = useState<Contract>();
 	const [allSongs, setAllSongs] = useState<any[]>([]);
 
@@ -48,6 +51,12 @@ const AppContextProvider: React.FC = ({ children }) => {
 			provider = new ethers.providers.JsonRpcProvider(
 				process.env.REACT_APP_POLYGON_URL
 			);
+		}
+
+		const network = await provider.getNetwork();
+
+		if (network.name !== "maticmum") {
+			setNetworkError("Please connect to Polygon Testnet and refresh the page");
 		}
 
 		const signer = provider.getSigner(
@@ -87,7 +96,6 @@ const AppContextProvider: React.FC = ({ children }) => {
 	};
 
 	const sendTip = async () => {
-		console.log("tip in contexts");
 		if (gemz) {
 			const response = await gemz.donate(1, {
 				value: ethers.utils.parseUnits("0.01", "ether"),
@@ -123,8 +131,6 @@ const AppContextProvider: React.FC = ({ children }) => {
 					};
 				});
 
-				console.log(structuredSongs);
-
 				setAllSongs(structuredSongs);
 			} catch (error) {
 				console.log(error);
@@ -140,6 +146,7 @@ const AppContextProvider: React.FC = ({ children }) => {
 	const value = {
 		gemz,
 		isMetamaskInstalled,
+		networkError,
 		connectWallet,
 		selectedAccount,
 		allSongs,
