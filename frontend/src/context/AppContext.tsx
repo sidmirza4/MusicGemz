@@ -11,6 +11,7 @@ import { ethers, Contract } from "ethers";
 import Fallback from "../components/Fallback";
 import contractAddress from "../contracts/contract-address.json";
 import gemzArtifacts from "../contracts/Gemz.json";
+import { ConnectingAirportsOutlined } from "@mui/icons-material";
 
 declare global {
 	interface Window {
@@ -38,18 +39,7 @@ const AppContextProvider: React.FC = ({ children }) => {
 	const [isMetamaskInstalled, setIsMetamaskInstalled] = useState(false);
 	const [selectedAccount, setSelectedAccount] = useState("");
 	const [gemz, setGemz] = useState<Contract>();
-	const [allSongs, setAllSongs] = useState([{}]);
-
-	useEffect(() => {
-		const getData = async () => {
-			if (gemz) {
-				const data = await gemz.owner();
-				console.log(data);
-			}
-		};
-
-		getData();
-	}, [gemz]);
+	const [allSongs, setAllSongs] = useState<any[]>([]);
 
 	const _initializeContract = useCallback(async () => {
 		let provider: any;
@@ -108,38 +98,46 @@ const AppContextProvider: React.FC = ({ children }) => {
 		}
 	};
 
-	useEffect(() => {
-		const getFile = async () => {
-			if (gemz) {
-				// couldn't figure out how to find the number of objects in the contract
-				// so just ecaped loop once we get out of bounds
-				let stillReading = true;
-				let i = 0;
-				let songTest = [];
-				while (stillReading) {
-					try {
-						const file = await gemz.files(i);
-						console.log(file);
-						const currentSong = {
-							id: file.fileID.toNumber(),
-							artistAddr: file.artistAddr,
-							artistName: file.artistName,
-							songTitle: file.fileName,
-							genre: file.genre,
-							songFile: file.coverHash,
-							coverPhoto: file.fileHash,
-						};
-						songTest.push(currentSong);
-						setAllSongs(songTest);
-						i++;
-					} catch (error) {
-						stillReading = false;
-					}
+	const _getAllSongs = useCallback(async () => {
+		const songs = [];
+
+		if (gemz) {
+			try {
+				const _fileCount = await gemz.fileCount();
+				const fileCount = parseInt(_fileCount.toString());
+
+				// get all songs from contract
+				for (let i = 0; i < fileCount; i++) {
+					const song = await gemz.files(i);
+					songs.push(song);
 				}
+
+				// structure songs
+				const structuredSongs = songs.reverse().map((song) => {
+					return {
+						id: song.fileID.toNumber(),
+						artistAddr: song.artistAddr,
+						artistName: song.artistName,
+						songTitle: song.fileName,
+						genre: song.genre,
+						songFile: song.fileHash,
+						coverPhoto: song.coverHash,
+					};
+				});
+
+				console.log(structuredSongs);
+
+				setAllSongs(structuredSongs);
+			} catch (error) {
+				console.log(error);
 			}
-		};
-		getFile();
+		}
 	}, [gemz]);
+
+	useEffect(() => {
+		_getAllSongs();
+		setInterval(_getAllSongs, 20000);
+	}, [gemz, _getAllSongs]);
 
 	const value = {
 		gemz,
@@ -150,11 +148,7 @@ const AppContextProvider: React.FC = ({ children }) => {
 		sendTip,
 	};
 
-	return (
-		<AppContext.Provider value={value}>
-			{!isMetamaskInstalled ? <Fallback /> : children}
-		</AppContext.Provider>
-	);
+	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useAppContext = () => useContext(AppContext);

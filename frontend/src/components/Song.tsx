@@ -10,6 +10,7 @@ import PauseIcon from "@mui/icons-material/Pause";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import { ethers } from "ethers";
 import { useAppContext } from "../context/AppContext";
+import { toast } from "react-toastify";
 
 interface SongProps {
 	id: string;
@@ -24,7 +25,7 @@ interface SongProps {
 export default function Song(props: SongProps) {
 	const [playing, setPlaying] = useState(false);
 	const audio = useRef(new Audio(`https://${props.songFile}.ipfs.dweb.link`));
-	const { gemz } = useAppContext();
+	const { gemz, selectedAccount } = useAppContext();
 
 	function playSong() {
 		setPlaying(!playing);
@@ -40,19 +41,36 @@ export default function Song(props: SongProps) {
 	}
 
 	const tip = async () => {
-		console.log("beginning tip");
+		if (!selectedAccount) {
+			toast("Please connect your wallet first", { type: "error" });
+			return;
+		}
+
 		if (gemz) {
-			const response = await gemz.donate(1, {
-				value: ethers.utils.parseUnits("0.1", "ether"),
-			});
-			console.log(response);
+			try {
+				const response = await gemz.donate(1, {
+					value: ethers.utils.parseUnits("0.00001", "ether"),
+				});
+				await response.wait();
+				toast("Tip sent", { type: "success" });
+			} catch (error) {
+				toast("Error sending tip", { type: "error" });
+				console.log(error);
+			}
 		}
 	};
 
 	return (
 		<div>
 			{props.artistAddr ? (
-				<Card sx={{ display: "flex" }}>
+				<Card
+					sx={{
+						display: "flex",
+						borderRadius: 0,
+						width: 320,
+						justifyContent: "space-between",
+					}}
+				>
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
 						<CardContent sx={{ flex: "1 0 auto" }}>
 							<Typography component="div" variant="h5">

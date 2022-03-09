@@ -10,6 +10,8 @@ import {
 	Stack,
 	Box,
 } from "@mui/material";
+import { toast } from "react-toastify";
+import { LoadingButton } from "@mui/lab";
 import { TextField } from "formik-mui";
 import Slide from "@mui/material/Slide";
 import { TransitionProps } from "@mui/material/transitions";
@@ -82,33 +84,49 @@ const UploadSongForm = () => {
 	const [selectedImage, setSelectedImage] = React.useState<File>();
 	const [open, setOpen] = React.useState(false);
 
-	const { gemz } = useAppContext();
+	const { gemz, selectedAccount } = useAppContext();
 	const { uploadFiles, getFiles } = useWeb3Storage();
 
 	const onSubmit = async (values: IValues) => {
-		// upload files and get the cid
-		if (values.coverImage && values.song) {
-			const cid = await uploadFiles([values.coverImage, values.song]);
+		try {
+			// upload files and get the cid
+			if (values.coverImage && values.song) {
+				const songCid = await uploadFiles([values.song]);
 
-			// getting uploaded files using the cid
-			const files = await getFiles(cid);
-			if (files && files?.length) {
-				const [image, song] = files;
+				const imageCid = await uploadFiles([values.coverImage]);
 
-				// if files are there send the data to the blockchain
-				console.log("giving data to the blockchain");
-				if (gemz) {
-					const response = await gemz.uploadFile(
-						song.cid,
-						image.cid,
-						values.songTitle,
-						values.artistName,
-						values.genre
-					);
+				console.log(songCid);
+				console.log(imageCid);
 
-					console.log("response", response);
+				// getting uploaded files using the cid
+				const songFile = await getFiles(songCid);
+				const imageFile = await getFiles(imageCid);
+				if (songFile && imageFile) {
+					const [song] = songFile;
+					const [image] = imageFile;
+
+					// if files are there send the data to the blockchain
+					console.log("giving data to the blockchain");
+					if (gemz) {
+						const response = await gemz.uploadFile(
+							song.cid,
+							image.cid,
+							values.songTitle,
+							values.artistName,
+							values.genre
+						);
+
+						const confirm = await response.wait();
+						console.log(confirm);
+					}
 				}
 			}
+		} catch (err: any) {
+			if (err.code === 4001) {
+				toast("something went wrong", { type: "error" });
+				return;
+			}
+			console.log(err);
 		}
 	};
 
@@ -122,6 +140,10 @@ const UploadSongForm = () => {
 	}
 
 	const handleClickOpen = () => {
+		if (!selectedAccount) {
+			toast("Please connect your wallet first", { type: "info" });
+			return;
+		}
 		setOpen(true);
 	};
 
@@ -132,7 +154,7 @@ const UploadSongForm = () => {
 	return (
 		<div>
 			<Button onClick={handleClickOpen} variant="contained">
-				Upload song
+				Upload Music
 			</Button>
 			<Dialog
 				open={open}
@@ -141,19 +163,6 @@ const UploadSongForm = () => {
 				maxWidth="lg"
 				aria-describedby="upload-song-dialog"
 			>
-				{/* <p
-					style={{
-						fontSize: "25px",
-						fontWeight: "500",
-						paddingTop: "10px",
-						display: "flex",
-						flexDirection: "row",
-						justifyContent: "center",
-						alignItems: "center",
-					}}
-				>
-					Upload your song here
-				</p> */}
 				<DialogTitle sx={{ fontSize: "1.6rem" }}>
 					Upload your song here
 				</DialogTitle>
@@ -240,14 +249,15 @@ const UploadSongForm = () => {
 										</Box>
 									)}
 								</div>
-								<Button
-									disabled={isSubmitting}
+								<LoadingButton
+									loading={isSubmitting}
 									type="submit"
 									variant="contained"
 									fullWidth
+									disableElevation
 								>
 									Submit
-								</Button>
+								</LoadingButton>
 							</Stack>
 						)}
 					</Formik>
