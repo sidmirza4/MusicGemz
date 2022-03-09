@@ -8,10 +8,8 @@ import React, {
 
 import { ethers, Contract } from "ethers";
 
-import Fallback from "../components/Fallback";
 import contractAddress from "../contracts/contract-address.json";
 import gemzArtifacts from "../contracts/Gemz.json";
-import { ConnectingAirportsOutlined } from "@mui/icons-material";
 
 declare global {
 	interface Window {
