@@ -37,6 +37,8 @@ function saveFrontendFiles(gemz) {
 		contractsDir + "/Gemz.json",
 		JSON.stringify(GemzArtifacts, null, 2)
 	);
+
+	console.log("frontend files saved");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

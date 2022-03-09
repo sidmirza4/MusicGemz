@@ -109,12 +109,12 @@ const AppContextProvider: React.FC = ({ children }) => {
 
 		if (gemz) {
 			try {
-				const _fileCount = await gemz.fileCount();
-				const fileCount = parseInt(_fileCount.toString());
+				const _songsCount = await gemz.songsCount();
+				const songsCount = parseInt(_songsCount.toString());
 
 				// get all songs from contract
-				for (let i = 0; i < fileCount; i++) {
-					const song = await gemz.files(i);
+				for (let i = 1; i <= songsCount; i++) {
+					const song = await gemz.songs(i);
 					songs.push(song);
 				}
 
@@ -122,11 +122,10 @@ const AppContextProvider: React.FC = ({ children }) => {
 				const structuredSongs = songs.reverse().map((song) => {
 					return {
 						id: song.fileID.toNumber(),
-						artistAddr: song.artistAddr,
+						artistAddress: song.artistAddress,
 						artistName: song.artistName,
-						songTitle: song.fileName,
-						genre: song.genre,
-						songFile: song.fileHash,
+						songTitle: song.sontTitle,
+						songHash: song.songHash,
 						coverPhoto: song.coverHash,
 					};
 				});
@@ -137,6 +136,8 @@ const AppContextProvider: React.FC = ({ children }) => {
 			}
 		}
 	}, [gemz]);
+
+	console.log(allSongs);
 
 	useEffect(() => {
 		_getAllSongs();

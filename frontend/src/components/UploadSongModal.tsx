@@ -44,7 +44,6 @@ const validationSchema = Yup.object({
 	songTitle: Yup.string()
 		.max(100, "Must be 100 characters or less")
 		.required("Please fill song title"),
-	genre: Yup.string(),
 	coverImage: Yup.mixed()
 		.nullable()
 		.notRequired()
@@ -112,8 +111,7 @@ const UploadSongForm = () => {
 							song.cid,
 							image.cid,
 							values.songTitle,
-							values.artistName,
-							values.genre
+							values.artistName
 						);
 
 						const confirm = await response.wait();
@@ -123,10 +121,11 @@ const UploadSongForm = () => {
 			}
 		} catch (err: any) {
 			if (err.code === 4001) {
-				toast("something went wrong", { type: "error" });
+				toast("You rejected the transaction", { type: "error" });
 				return;
 			}
 			console.log(err);
+			toast("Something went wrong", { type: "error" });
 		}
 	};
 
@@ -197,14 +196,6 @@ const UploadSongForm = () => {
 										label="Artist Name"
 									/>
 								</Stack>
-
-								<Field
-									component={TextField}
-									name="genre"
-									type="text"
-									id="genre"
-									label="Genre"
-								/>
 
 								<div>
 									<label htmlFor="song">Upload Song*: </label>

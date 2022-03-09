@@ -7,12 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Gemz is Ownable {
 	uint256 public songsCount;
 
-	constructor() Ownable() {
-		songsCount = 0;
-	}
-
-	// enum Liked {Yes, No}
-
 	struct Song {
 		uint256 id;
 		string songHash;
@@ -23,10 +17,14 @@ contract Gemz is Ownable {
 		address[] donors;
 	}
 
+	mapping(uint256 => Song) songs;
+
+	constructor() Ownable() {
+		songsCount = 0;
+	}
+
 	event Uploaded(address _artist, string _songHash, uint256 _songId);
 	event Donate(address _artistAddress, uint256 _amount, address _donorAddr);
-
-	mapping(uint256 => Song) songs;
 
 	function uploadFile(
 		string memory _songHash,
