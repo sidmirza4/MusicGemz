@@ -17,7 +17,7 @@ contract Gemz is Ownable {
 		address[] donors;
 	}
 
-	mapping(uint256 => Song) songs;
+	mapping(uint256 => Song) public songs;
 
 	constructor() Ownable() {
 		songsCount = 0;
