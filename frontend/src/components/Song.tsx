@@ -7,31 +7,23 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
+import { toast } from "react-toastify";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import { ethers } from "ethers";
+
 import { useAppContext } from "../context/AppContext";
-import { toast } from "react-toastify";
+import { ISong } from "../types";
 
-interface SongProps {
-	id: string;
-	artistAddr: string;
-	artistName: string;
-	songTitle: string;
-	genre: string;
-	songFile: string;
-	coverPhoto: string;
-}
-
-export default function Song(props: SongProps) {
+export default function Song(props: { song: ISong }) {
+	const { song } = props;
 	const [playing, setPlaying] = useState(false);
-	const audio = useRef(new Audio(`https://${props.songFile}.ipfs.dweb.link`));
+	const audio = useRef(new Audio(`https://${song.songHash}.ipfs.dweb.link`));
 	const { gemz, selectedAccount } = useAppContext();
 
 	function playSong() {
 		setPlaying(!playing);
 		//play song
 		if (!playing) {
-			console.log("play");
 			audio.current.play();
 		}
 		// pause song
@@ -62,7 +54,7 @@ export default function Song(props: SongProps) {
 
 	return (
 		<div>
-			{props.artistAddr ? (
+			{song.artistAddress ? (
 				<Card
 					sx={{
 						display: "flex",
@@ -74,14 +66,14 @@ export default function Song(props: SongProps) {
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
 						<CardContent sx={{ flex: "1 0 auto" }}>
 							<Typography component="div" variant="h5">
-								{props.songTitle}
+								{song.songTitle}
 							</Typography>
 							<Typography
 								variant="subtitle1"
 								color="text.secondary"
 								component="div"
 							>
-								{props.artistName}
+								{song.artistName}
 							</Typography>
 						</CardContent>
 						<Box sx={{ display: "flex", alignItems: "center", pl: 1, pb: 1 }}>
@@ -100,7 +92,7 @@ export default function Song(props: SongProps) {
 					<CardMedia
 						component="img"
 						sx={{ width: 151 }}
-						image={`https://${props.coverPhoto}.ipfs.dweb.link`}
+						image={`https://${song.coverHash}.ipfs.dweb.link`}
 						alt="Song Cover"
 					/>
 				</Card>

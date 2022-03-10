@@ -1,4 +1,4 @@
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FormikBag } from "formik";
 import * as Yup from "yup";
 // import { Button } from "./ui/atoms/Button";
 import {
@@ -114,8 +114,11 @@ const UploadSongForm = () => {
 							values.artistName
 						);
 
-						const confirm = await response.wait();
-						console.log(confirm);
+						await response.wait();
+						toast("Song uploaded successfully", { type: "success" });
+						setSelectedImage(undefined);
+						setSelectedSong(undefined);
+						handleClose();
 					}
 				}
 			}
@@ -231,7 +234,7 @@ const UploadSongForm = () => {
 										}}
 									/>
 									{selectedImage && (
-										<Box>
+										<Box sx={{ width: 1, height: 1, mt: 2 }}>
 											<img
 												src={URL.createObjectURL(selectedImage)}
 												style={{ width: "100%", height: "100%" }}

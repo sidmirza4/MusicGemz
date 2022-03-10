@@ -10,6 +10,7 @@ import { ethers, Contract } from "ethers";
 
 import contractAddress from "../contracts/contract-address.json";
 import gemzArtifacts from "../contracts/Gemz.json";
+import { ISong } from "../types";
 
 declare global {
 	interface Window {
@@ -40,7 +41,7 @@ const AppContextProvider: React.FC = ({ children }) => {
 	const [selectedAccount, setSelectedAccount] = useState("");
 	const [networkError, setNetworkError] = useState("");
 	const [gemz, setGemz] = useState<Contract>();
-	const [allSongs, setAllSongs] = useState<any[]>([]);
+	const [allSongs, setAllSongs] = useState<ISong[]>([]);
 
 	const _initializeContract = useCallback(async () => {
 		let provider: any;
@@ -121,12 +122,12 @@ const AppContextProvider: React.FC = ({ children }) => {
 				// structure songs
 				const structuredSongs = songs.reverse().map((song) => {
 					return {
-						id: song.fileID.toNumber(),
+						id: song.id.toNumber(),
 						artistAddress: song.artistAddress,
 						artistName: song.artistName,
-						songTitle: song.sontTitle,
+						songTitle: song.songTitle,
 						songHash: song.songHash,
-						coverPhoto: song.coverHash,
+						coverHash: song.coverHash,
 					};
 				});
 
@@ -137,11 +138,9 @@ const AppContextProvider: React.FC = ({ children }) => {
 		}
 	}, [gemz]);
 
-	console.log(allSongs);
-
 	useEffect(() => {
 		_getAllSongs();
-		setInterval(_getAllSongs, 20000);
+		setInterval(_getAllSongs, 10000);
 	}, [gemz, _getAllSongs]);
 
 	const value = {
